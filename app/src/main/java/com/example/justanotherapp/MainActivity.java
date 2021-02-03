@@ -12,6 +12,9 @@ import android.widget.MediaController;
 import android.widget.SeekBar;
 import android.widget.VideoView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity {
     MediaPlayer mediaPlayer; // Used to access our media
     AudioManager audioManager; // Use to access phone audio settings
@@ -39,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         volumeControl.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.i("SeekBar CHanged", Integer.toString(progress));
+
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
             }
 
@@ -53,5 +56,32 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        SeekBar scrubSeekBar = (SeekBar) findViewById(R.id.scrubSeekBar);
+        scrubSeekBar.setMax(mediaPlayer.getDuration());
+        scrubSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) // it makes media player do something when user does something no because of timer
+                    mediaPlayer.seekTo(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                mediaPlayer.pause();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                mediaPlayer.start();
+            }
+        });
+        // here we define a timer to which we will tell what to do when the given time changes.
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                scrubSeekBar.setProgress(mediaPlayer.getCurrentPosition());
+            }
+        }, 0, 50);
     }
 }
